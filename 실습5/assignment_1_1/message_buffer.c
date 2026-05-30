@@ -26,8 +26,10 @@ int init_buffer(MessageBuffer **buffer) {
 
     memory_segment = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (memory_segment == MAP_FAILED) return -1;
-
+    *buffer = (MessageBuffer*)memory_segment;
+    Message msg;
     (*buffer)->is_empty = 1;
+    (*buffer)->message = msg;
 
     printf("init buffer\n");
     return 0;
@@ -46,7 +48,7 @@ int attach_buffer(MessageBuffer **buffer) {
     /*---------------------------------------*/
     if ((shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666)) == -1) return -1;
     memory_segment = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
-
+    if (memory_segment == MAP_FAILED) return -1;
     *buffer = (MessageBuffer*)memory_segment;
 
     printf("attach buffer\n");
@@ -85,10 +87,12 @@ int produce(MessageBuffer **buffer, int sender_id, int data, int account_id) {
 
     /* TODO 3 : END                          */
     /*---------------------------------------*/
-
-    (*buffer)->message.sender_id = sender_id;
-    (*buffer)->message.data = data;
+    Message msg;
+    msg.sender_id = sender_id;
+    msg.data = data;
+    (*buffer)->message = msg;
     (*buffer)->account_id = account_id;
+    (*buffer)->is_empty = 0;
 
 
     printf("produce message\n");
@@ -106,12 +110,11 @@ int consume(MessageBuffer **buffer, Message **message) {
     /* TODO 4 : END                          */
     /*---------------------------------------*/
 
-    attach_buffer(buffer);
 
     //msg->sender_id, buffer->account_id, msg->data
     if(!(*buffer)->is_empty) {
-        (*message)->sender_id = (*buffer)->message.sender_id;
-        (*message)->data = (*buffer)->message.data;
+        (*message)= &((*buffer)->message);
+        (*buffer)->is_empty = 1;
     } else {
         return -1;
     }

@@ -10,7 +10,6 @@ int main(int argc, char *argv[]) {
     int account_id = atoi(argv[1]);
     int data = atoi(argv[2]);
     pid = getpid();
-
     attach_buffer(&buffer);
     produce(&buffer, (int)pid, data, account_id);
 
