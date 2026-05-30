@@ -4,9 +4,7 @@
 int main(void) {
     MessageBuffer *buffer;
     Message *msg;
-    printf("1\n");
     init_buffer(&buffer);
-    printf("2\n");
 
     while (1) {
         if (consume(&buffer, &msg) == 0) {

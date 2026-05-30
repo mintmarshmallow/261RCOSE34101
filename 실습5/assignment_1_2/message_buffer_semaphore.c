@@ -20,6 +20,8 @@ void init_sem(void) {
 
     /* TODO 1 : END                          */
     /*---------------------------------------*/
+    if ((sem = sem_open(SEM_NAME, O_CREAT, 0666, 1)) == SEM_FAILED) return;
+
     printf("init semaphore : %s\n", SEM_NAME);
 }
 
@@ -31,6 +33,9 @@ void destroy_sem(void) {
 
     /* TODO 2 : END                          */
     /*---------------------------------------*/
+
+    sem_close(sem);
+    sem_unlink(SEM_NAME);
 }
 
 void s_wait(void) {
@@ -79,6 +84,15 @@ int init_buffer(MessageBuffer **buffer) {
 
     /* TODO 3-1 : END                        */
     /*---------------------------------------*/
+    if ((shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666)) == -1) return -1;
+    if (ftruncate(shm_fd, sizeof(int)) == -1) return -1;
+
+    memory_segment = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (memory_segment == MAP_FAILED) return -1;
+    *buffer = (MessageBuffer*)memory_segment;
+    Message msg;
+    (*buffer)->is_empty = 1;
+    (*buffer)->message = msg;
 
     printf("init buffer\n");
     return 0;
@@ -95,6 +109,10 @@ int attach_buffer(MessageBuffer **buffer) {
 
     /* TODO 3-2 : END                        */
     /*---------------------------------------*/
+    if ((shm_fd = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666)) == -1) return -1;
+    memory_segment = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (memory_segment == MAP_FAILED) return -1;
+    *buffer = (MessageBuffer*)memory_segment;
 
     printf("attach buffer\n");
     printf("\n");
@@ -136,6 +154,15 @@ int produce(MessageBuffer **buffer, int sender_id, int data, int account_id) {
     /* TODO 3-3 : END                        */
     /*---------------------------------------*/
 
+    Message msg;
+    msg.sender_id = sender_id;
+    msg.data = data;
+    s_wait();
+    (*buffer)->message = msg;
+    (*buffer)->account_id = account_id;
+    (*buffer)->is_empty = 0;
+    s_quit();
+
     printf("produce message\n");
 
     return 0;
@@ -152,6 +179,18 @@ int consume(MessageBuffer **buffer, Message **message) {
 
     /* TODO 3-4 : END                        */
     /*---------------------------------------*/
+    s_wait();
+    
+    if(!(*buffer)->is_empty) {
+        (*message) = &((*buffer)->message);
+        (*buffer)->is_empty = 1;
+        s_quit();
+    } else {
+        s_quit();
+        return -1;
+        
+    }
+    
     return 0;
 }
 
