@@ -36,7 +36,7 @@ int main(void) {
 			return -1;
 		}
 
-		if (read(pipefd, receive_msg, sizeof(receive_msg)) == -1) return -1;
+		if (read(receive_fd, receive_msg, sizeof(receive_msg)) == -1) return -1;
 
 		if (!strcmp(receive_msg, "quit")) return 0;
 		/* TODO 2 : END                          */

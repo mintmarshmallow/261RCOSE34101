@@ -41,7 +41,7 @@ int main(void) {
 	while (1) {
 		/*---------------------------------------*/
 		/* TODO 4 : read msg                     */
-		if (read(pipefd, receive_msg, sizeof(receive_msg)) == -1) return -1;
+		if (read(receive_fd, receive_msg, sizeof(receive_msg)) == -1) return -1;
 
 		if (!strcmp(receive_msg, "quit")) return 0;
 		/* TODO 4 : END                          */
