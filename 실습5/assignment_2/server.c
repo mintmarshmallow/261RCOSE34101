@@ -21,8 +21,19 @@ int main(void) {
 	/* (3) init receive_fd and send_fd       */
 
 	//make client_to_server pipe
+	if (mkfifo(NP_RECEIVE, 0666) == -1) return -1;
 
 	//make server_to_client pipe
+	if (mkfifo(NP_SEND, 0666) == -1) return -1;
+
+	if ((send_fd = open(NP_SEND, O_WRONLY)) == -1) {
+		perror("open");
+		return -1;
+	}
+	if ((receive_fd = open(NP_RECEIVE, O_WRONLY)) == -1) {
+		perror("open");
+		return -1;
+	}
 
 	/* TODO 3 : END                          */
 	/*---------------------------------------*/
@@ -30,7 +41,9 @@ int main(void) {
 	while (1) {
 		/*---------------------------------------*/
 		/* TODO 4 : read msg                     */
+		if (read(pipefd, receive_msg, sizeof(receive_msg)) == -1) return -1;
 
+		if (!strcmp(receive_msg, "quit")) return 0;
 		/* TODO 4 : END                          */
 		/*---------------------------------------*/
 
@@ -43,7 +56,10 @@ int main(void) {
 
 		/*---------------------------------------*/
 		/* TODO 5 : write msg                    */
-
+		if (write(send_fd, send_msg, sizeof(send_msg)) == -1) {
+			perror("write");
+			return -1;
+		}
 		/* TODO 5 : END                          */
 		/*---------------------------------------*/
 	}

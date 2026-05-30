@@ -13,6 +13,15 @@ int main(void) {
 	int receive_fd, send_fd;
 	/*---------------------------------------*/
 	/* TODO 1 : init receive_fd and send_fd  */
+
+	if ((send_fd = open(NP_SEND, O_WRONLY)) == -1) {
+		perror("open");
+		return -1;
+	}
+	if ((receive_fd = open(NP_RECEIVE, O_WRONLY)) == -1) {
+		perror("open");
+		return -1;
+	}
 	
 	/* TODO 1 : END                          */
 	/*---------------------------------------*/
@@ -22,7 +31,14 @@ int main(void) {
 		sprintf(send_msg, "%d", i);
 		/*---------------------------------------*/
 		/* TODO 2 : send msg and receive msg     */
+		if (write(send_fd, send_msg, sizeof(send_msg)) == -1) {
+			perror("write");
+			return -1;
+		}
 
+		if (read(pipefd, receive_msg, sizeof(receive_msg)) == -1) return -1;
+
+		if (!strcmp(receive_msg, "quit")) return 0;
 		/* TODO 2 : END                          */
 		/*---------------------------------------*/
 
