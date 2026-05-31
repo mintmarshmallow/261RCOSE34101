@@ -14,14 +14,15 @@ int main(void) {
 	/*---------------------------------------*/
 	/* TODO 1 : init receive_fd and send_fd  */
 
+	if ((receive_fd = open(NP_RECEIVE, O_RDONLY)) == -1) {
+		perror("open");
+		return -1;
+	}
 	if ((send_fd = open(NP_SEND, O_WRONLY)) == -1) {
 		perror("open");
 		return -1;
 	}
-	if ((receive_fd = open(NP_RECEIVE, O_WRONLY)) == -1) {
-		perror("open");
-		return -1;
-	}
+	
 	
 	/* TODO 1 : END                          */
 	/*---------------------------------------*/

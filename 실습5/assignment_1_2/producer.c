@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
 
     attach_buffer(&buffer);
     produce(&buffer, (int)pid, data, account_id);
+    detach_buffer();
 
     return 0;
 }

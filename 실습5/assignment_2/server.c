@@ -19,7 +19,12 @@ int main(void) {
 	/* (1) make NP_RECEIVE pipe              */
 	/* (2) make NP_SEND pipe                 */
 	/* (3) init receive_fd and send_fd       */
-
+	if (access(NP_RECEIVE, F_OK) == 0) {
+		unlink(NP_RECEIVE);
+	}
+	if (access(NP_SEND, F_OK) == 0) {
+		unlink(NP_SEND);
+	}
 	//make client_to_server pipe
 	if (mkfifo(NP_RECEIVE, 0666) == -1) return -1;
 
@@ -30,7 +35,7 @@ int main(void) {
 		perror("open");
 		return -1;
 	}
-	if ((receive_fd = open(NP_RECEIVE, O_WRONLY)) == -1) {
+	if ((receive_fd = open(NP_RECEIVE, O_RDONLY)) == -1) {
 		perror("open");
 		return -1;
 	}

@@ -13,5 +13,7 @@ int main(void) {
             printf("sender_id : %d\naccount_id : %d\nbalance : %d\n\n", msg->sender_id, buffer->account_id, msg->data);
         }
     }
+    destroy_sem();
+    destroy_buffer();
     return 0;
 }
