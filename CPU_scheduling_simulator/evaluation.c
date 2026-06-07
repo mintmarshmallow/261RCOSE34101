@@ -24,8 +24,13 @@ void add_gantt_event(int start_time, int end_time, int pid) {
 void print_gantt_chart() {
     printf("\n==== Gantt Chart ====\n");
     for (int i = 0; i < num_gantt_events; i++) {
-        printf("[%d~%d] P%d\n", gantt_chart[i].start_time, gantt_chart[i].end_time, gantt_chart[i].pid);
+        if (gantt_chart[i].pid == -1) {
+            printf("| [%d~%d] IDLE \t", gantt_chart[i].start_time, gantt_chart[i].end_time);
+        } else {
+            printf("| [%d~%d] P%d \t", gantt_chart[i].start_time, gantt_chart[i].end_time, gantt_chart[i].pid);
+        }
     }
+    printf("|\n");
     printf("=====================\n\n");
 }
 

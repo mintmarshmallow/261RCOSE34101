@@ -58,6 +58,9 @@ void run_fcfs(Process processes[], int num_processes) {
                 }
                 running_process = NULL;
             }
+        } else {
+            // IDLE 상태를 간트 차트에 기록 (-1을 IDLE로 간주)
+            add_gantt_event(tick, tick + 1, -1);
         }
         tick++;
     }
@@ -115,6 +118,9 @@ void run_sjf_np(Process processes[], int num_processes) {
                 }
                 running_process = NULL;
             }
+        } else {
+            // IDLE 상태를 간트 차트에 기록 (-1을 IDLE로 간주)
+            add_gantt_event(tick, tick + 1, -1);
         }
         tick++;
     }
@@ -153,6 +159,7 @@ void run_sjf_p(Process processes[], int num_processes) {
         }
         
         // 선점 여부 검사 (매 tick마다 큐 맨 앞 프로세스와 비교)
+        // 기능 명확화를 위해 도착한 프로세스를 검사하지 않고, 매 tick마다 ready queue를 검사
         if (running_process != NULL) {
             Process* front = peek_queue(&ready_queue);
             if (front != NULL && front->remaining_burst_time < running_process->remaining_burst_time) {
@@ -182,6 +189,9 @@ void run_sjf_p(Process processes[], int num_processes) {
                 }
                 running_process = NULL;
             }
+        } else {
+            // IDLE 상태를 간트 차트에 기록 (-1을 IDLE로 간주)
+            add_gantt_event(tick, tick + 1, -1);
         }
         tick++;
     }
@@ -239,6 +249,9 @@ void run_priority_np(Process processes[], int num_processes) {
                 }
                 running_process = NULL;
             }
+        } else {
+            // IDLE 상태를 간트 차트에 기록 (-1을 IDLE로 간주)
+            add_gantt_event(tick, tick + 1, -1);
         }
         tick++;
     }
@@ -277,6 +290,7 @@ void run_priority_p(Process processes[], int num_processes) {
         }
         
         // 선점 여부 검사 (매 tick마다 우선순위 비교)
+        // 기능 명확화를 위해 도착한 프로세스를 검사하지 않고, 매 tick마다 ready queue를 검사
         if (running_process != NULL) {
             Process* front = peek_queue(&ready_queue);
             if (front != NULL && front->dynamic_priority < running_process->dynamic_priority) {
@@ -306,6 +320,9 @@ void run_priority_p(Process processes[], int num_processes) {
                 }
                 running_process = NULL;
             }
+        } else {
+            // IDLE 상태를 간트 차트에 기록 (-1을 IDLE로 간주)
+            add_gantt_event(tick, tick + 1, -1);
         }
         tick++;
     }
@@ -375,6 +392,9 @@ void run_rr(Process processes[], int num_processes) {
                 }
                 running_process = NULL;
             }
+        } else {
+            // IDLE 상태를 간트 차트에 기록 (-1을 IDLE로 간주)
+            add_gantt_event(tick, tick + 1, -1);
         }
         tick++;
     }
@@ -392,6 +412,29 @@ void run_priority_aging(Process processes[], int num_processes) {
     num_gantt_events = 0; // 간트 차트 초기화
     
     while (completed_processes < num_processes) {
+        // Aging 처리 및 재정렬을 동시에 수행 (큐에서 뺐다가 정렬 삽입)
+        // 새로 도착하거나 I/O에서 막 깨어난 프로세스가 억울하게 대기시간을 먹지 않도록 틱 사이클 제일 먼저 실행
+        if (!is_queue_empty(&ready_queue)) {
+            Queue temp_q;
+            init_queue(&temp_q);
+            while (!is_queue_empty(&ready_queue)) {
+                Process* p = dequeue(&ready_queue);
+                
+                // 5틱 대기할 때마다 dynamic priority 증가 (숫자 감소)
+                p->wait_ticks++;
+                if (p->wait_ticks >= 5) {
+                    if (p->dynamic_priority > 1) {
+                        p->dynamic_priority--;
+                    }
+                    p->wait_ticks = 0;
+                }
+                
+                // Aging이 반영된 상태로 임시 큐에 우선순위 정렬하여 삽입
+                sorted_enqueue_priority(&temp_q, p);
+            }
+            ready_queue = temp_q;
+        }
+
         for (int i = 0; i < num_processes; i++) {
             if (processes[i].state == NEW && processes[i].arrival_time == tick) {
                 processes[i].state = READY;
@@ -411,31 +454,6 @@ void run_priority_aging(Process processes[], int num_processes) {
                 }
             }
         }
-        
-        // Aging 처리: Ready 큐에서 5틱 대기할 때마다 dynamic priority 증가 (숫자 감소)
-        Process* curr = ready_queue.head;
-        while (curr != NULL) {
-            curr->wait_ticks++;
-            if (curr->wait_ticks >= 5) {
-                if (curr->dynamic_priority > 1) {
-                    curr->dynamic_priority--;
-                }
-                curr->wait_ticks = 0;
-            }
-            curr = curr->next;
-        }
-        
-        // dynamic priority가 변경되었을 수 있으므로 Ready 큐 재정렬
-        if (!is_queue_empty(&ready_queue)) {
-            Queue temp_q;
-            init_queue(&temp_q);
-            while (!is_queue_empty(&ready_queue)) {
-                Process* p = dequeue(&ready_queue);
-                sorted_enqueue_priority(&temp_q, p);
-            }
-            ready_queue = temp_q;
-        }
-        
         // 선점 여부 검사 (매 tick마다 우선순위 비교)
         if (running_process != NULL) {
             Process* front = peek_queue(&ready_queue);
@@ -467,6 +485,9 @@ void run_priority_aging(Process processes[], int num_processes) {
                 }
                 running_process = NULL;
             }
+        } else {
+            // IDLE 상태를 간트 차트에 기록 (-1을 IDLE로 간주)
+            add_gantt_event(tick, tick + 1, -1);
         }
         tick++;
     }

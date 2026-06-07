@@ -87,13 +87,7 @@ int main() {
     
     while(1){
         
-        if(toggle){
-            printf("========================================================================\n");
-            printf("                      [Current Simulation Rankings]                     \n");
-            printf("========================================================================\n\n");
-
-            print_simulation_ranking(results);
-            
+        if(toggle){            
             printf("0. Exit\n");
             printf("1. Generate New Processes\n");
             printf("2. Run All Simulations\n");
@@ -104,6 +98,8 @@ int main() {
             printf("7. Priority (Preemptive) \n");
             printf("8. RR (Quantum = 4)\n");
             printf("9. Priority with Aging \n");
+            printf("10. Show Algorithm Rankings \n");
+            printf("11. Show Processes Info \n");
             printf("Select: ");
         } else {
             printf("0. Exit\n");
@@ -114,7 +110,12 @@ int main() {
         
         
         int choice;
-        scanf("%d", &choice);
+        if (scanf("%d", &choice) != 1) {
+            // scanf가 숫자를 읽지 못한 경우 (문자 등 입력) 입력 버퍼를 비워 무한루프 방지
+            while (getchar() != '\n');
+            printf("\nInvalid input. Please enter a valid number.\n\n");
+            continue;
+        }
         if(choice == 1){
             srand(time(NULL)); 
                 // 1. 프로세스 생성 (랜덤)
@@ -209,9 +210,30 @@ int main() {
             deep_copy_processes(simulation_processes, original_processes, MAX_PROCESSES);
             run_priority_aging(simulation_processes, MAX_PROCESSES);
             results[6] = evaluate_and_print_results(simulation_processes, MAX_PROCESSES, "Priority with Aging");
+        } else if(choice == 10 && toggle){
+            printf("========================================================================\n");
+            printf("                      [Current Simulation Rankings]                     \n");
+            printf("========================================================================\n\n");
+
+            print_simulation_ranking(results);
+        } else if(choice == 11 && toggle){
+            printf(">> Generated Processes <<\n");
+            printf("PID\tArrival\tPriority\tBurst Sequence (CPU, I/O...)\n");
+            for (int i = 0; i < MAX_PROCESSES; i++) {
+                printf("P%d\t%d\t%d\t\t", original_processes[i].pid, original_processes[i].arrival_time, original_processes[i].priority);
+                for (int b = 0; b < original_processes[i].num_cpu_bursts; b++) {
+                    printf("[CPU %d]", original_processes[i].cpu_bursts[b]);
+                    if (b < original_processes[i].num_cpu_bursts - 1) {
+                        printf(" -> [I/O %d] -> ", original_processes[i].io_bursts[b]);
+                    }
+                }
+                printf("\n");
+            }
         } else if(choice == 0){
             printf("Simulator terminated.\n");
             return 0;
+        } else {
+            printf("Invalid choice. Please try again.\n");
         }
         
     }
