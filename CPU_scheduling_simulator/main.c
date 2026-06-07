@@ -72,6 +72,8 @@ void print_simulation_ranking(SimulationResult results[]) {
 }
 
 int main() {
+    // 프로그램 시작 시 단 한 번만 시드 초기화 (빠른 연속 실행 시 중복 랜덤 방지)
+    srand(time(NULL));
     int toggle = 0;
     SimulationResult results[7];
     for (int i = 0; i < 7; i++) {
@@ -117,7 +119,6 @@ int main() {
             continue;
         }
         if(choice == 1){
-            srand(time(NULL)); 
                 // 1. 프로세스 생성 (랜덤)
                 generate_processes(original_processes);
         
