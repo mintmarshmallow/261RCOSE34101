@@ -5,9 +5,7 @@
 // 1. First-Come, First-Served (FCFS) 스케줄러
 void run_fcfs(Process processes[], int num_processes) {
     Queue ready_queue;
-    Queue waiting_queue;
     init_queue(&ready_queue);
-    init_queue(&waiting_queue);
     
     int tick = 0;
     int completed_processes = 0;
@@ -24,23 +22,18 @@ void run_fcfs(Process processes[], int num_processes) {
             }
         }
         
-        // Waiting 큐 (I/O) 처리
-        int wait_count = 0;
-        Process* temp_wait_arr[MAX_PROCESSES];
-        while (!is_queue_empty(&waiting_queue)) {
-            Process* p = dequeue(&waiting_queue);
-            p->remaining_io_time--;
-            if (p->remaining_io_time <= 0) {
-                p->state = READY;
-                p->current_burst_idx++;
-                p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
-                enqueue(&ready_queue, p);
-            } else {
-                temp_wait_arr[wait_count++] = p;
+        // I/O 대기(Waiting) 처리 - 전체 배열 순회
+        for (int i = 0; i < num_processes; i++) {
+            Process* p = &processes[i];
+            if (p->state == WAITING) {
+                p->remaining_io_time--;
+                if (p->remaining_io_time <= 0) {
+                    p->state = READY;
+                    p->current_burst_idx++;
+                    p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
+                    enqueue(&ready_queue, p);
+                }
             }
-        }
-        for (int i = 0; i < wait_count; i++) {
-            enqueue(&waiting_queue, temp_wait_arr[i]);
         }
         
         // 프로세스 디스패치 (비선점)
@@ -58,7 +51,6 @@ void run_fcfs(Process processes[], int num_processes) {
                 if (running_process->current_burst_idx < running_process->num_cpu_bursts - 1) {
                     running_process->state = WAITING;
                     running_process->remaining_io_time = running_process->io_bursts[running_process->current_burst_idx];
-                    enqueue(&waiting_queue, running_process);
                 } else {
                     running_process->state = TERMINATED;
                     running_process->completion_time = tick + 1;
@@ -74,9 +66,7 @@ void run_fcfs(Process processes[], int num_processes) {
 // 2. Non-Preemptive SJF 스케줄러
 void run_sjf_np(Process processes[], int num_processes) {
     Queue ready_queue;
-    Queue waiting_queue;
     init_queue(&ready_queue);
-    init_queue(&waiting_queue);
     
     int tick = 0;
     int completed_processes = 0;
@@ -92,22 +82,17 @@ void run_sjf_np(Process processes[], int num_processes) {
             }
         }
         
-        int wait_count = 0;
-        Process* temp_wait_arr[MAX_PROCESSES];
-        while (!is_queue_empty(&waiting_queue)) {
-            Process* p = dequeue(&waiting_queue);
-            p->remaining_io_time--;
-            if (p->remaining_io_time <= 0) {
-                p->state = READY;
-                p->current_burst_idx++;
-                p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
-                sorted_enqueue_sjf(&ready_queue, p);
-            } else {
-                temp_wait_arr[wait_count++] = p;
+        for (int i = 0; i < num_processes; i++) {
+            Process* p = &processes[i];
+            if (p->state == WAITING) {
+                p->remaining_io_time--;
+                if (p->remaining_io_time <= 0) {
+                    p->state = READY;
+                    p->current_burst_idx++;
+                    p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
+                    sorted_enqueue_sjf(&ready_queue, p);
+                }
             }
-        }
-        for (int i = 0; i < wait_count; i++) {
-            enqueue(&waiting_queue, temp_wait_arr[i]);
         }
         
         if (running_process == NULL && !is_queue_empty(&ready_queue)) {
@@ -123,7 +108,6 @@ void run_sjf_np(Process processes[], int num_processes) {
                 if (running_process->current_burst_idx < running_process->num_cpu_bursts - 1) {
                     running_process->state = WAITING;
                     running_process->remaining_io_time = running_process->io_bursts[running_process->current_burst_idx];
-                    enqueue(&waiting_queue, running_process);
                 } else {
                     running_process->state = TERMINATED;
                     running_process->completion_time = tick + 1;
@@ -139,9 +123,7 @@ void run_sjf_np(Process processes[], int num_processes) {
 // 3. Preemptive SJF (SRTF) 스케줄러
 void run_sjf_p(Process processes[], int num_processes) {
     Queue ready_queue;
-    Queue waiting_queue;
     init_queue(&ready_queue);
-    init_queue(&waiting_queue);
     
     int tick = 0;
     int completed_processes = 0;
@@ -157,22 +139,17 @@ void run_sjf_p(Process processes[], int num_processes) {
             }
         }
         
-        int wait_count = 0;
-        Process* temp_wait_arr[MAX_PROCESSES];
-        while (!is_queue_empty(&waiting_queue)) {
-            Process* p = dequeue(&waiting_queue);
-            p->remaining_io_time--;
-            if (p->remaining_io_time <= 0) {
-                p->state = READY;
-                p->current_burst_idx++;
-                p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
-                sorted_enqueue_sjf(&ready_queue, p);
-            } else {
-                temp_wait_arr[wait_count++] = p;
+        for (int i = 0; i < num_processes; i++) {
+            Process* p = &processes[i];
+            if (p->state == WAITING) {
+                p->remaining_io_time--;
+                if (p->remaining_io_time <= 0) {
+                    p->state = READY;
+                    p->current_burst_idx++;
+                    p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
+                    sorted_enqueue_sjf(&ready_queue, p);
+                }
             }
-        }
-        for (int i = 0; i < wait_count; i++) {
-            enqueue(&waiting_queue, temp_wait_arr[i]);
         }
         
         // 선점 여부 검사 (매 tick마다 큐 맨 앞 프로세스와 비교)
@@ -198,7 +175,6 @@ void run_sjf_p(Process processes[], int num_processes) {
                 if (running_process->current_burst_idx < running_process->num_cpu_bursts - 1) {
                     running_process->state = WAITING;
                     running_process->remaining_io_time = running_process->io_bursts[running_process->current_burst_idx];
-                    enqueue(&waiting_queue, running_process);
                 } else {
                     running_process->state = TERMINATED;
                     running_process->completion_time = tick + 1;
@@ -214,9 +190,7 @@ void run_sjf_p(Process processes[], int num_processes) {
 // 4. Non-Preemptive Priority 스케줄러
 void run_priority_np(Process processes[], int num_processes) {
     Queue ready_queue;
-    Queue waiting_queue;
     init_queue(&ready_queue);
-    init_queue(&waiting_queue);
     
     int tick = 0;
     int completed_processes = 0;
@@ -232,22 +206,17 @@ void run_priority_np(Process processes[], int num_processes) {
             }
         }
         
-        int wait_count = 0;
-        Process* temp_wait_arr[MAX_PROCESSES];
-        while (!is_queue_empty(&waiting_queue)) {
-            Process* p = dequeue(&waiting_queue);
-            p->remaining_io_time--;
-            if (p->remaining_io_time <= 0) {
-                p->state = READY;
-                p->current_burst_idx++;
-                p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
-                sorted_enqueue_priority(&ready_queue, p);
-            } else {
-                temp_wait_arr[wait_count++] = p;
+        for (int i = 0; i < num_processes; i++) {
+            Process* p = &processes[i];
+            if (p->state == WAITING) {
+                p->remaining_io_time--;
+                if (p->remaining_io_time <= 0) {
+                    p->state = READY;
+                    p->current_burst_idx++;
+                    p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
+                    sorted_enqueue_priority(&ready_queue, p);
+                }
             }
-        }
-        for (int i = 0; i < wait_count; i++) {
-            enqueue(&waiting_queue, temp_wait_arr[i]);
         }
         
         if (running_process == NULL && !is_queue_empty(&ready_queue)) {
@@ -263,7 +232,6 @@ void run_priority_np(Process processes[], int num_processes) {
                 if (running_process->current_burst_idx < running_process->num_cpu_bursts - 1) {
                     running_process->state = WAITING;
                     running_process->remaining_io_time = running_process->io_bursts[running_process->current_burst_idx];
-                    enqueue(&waiting_queue, running_process);
                 } else {
                     running_process->state = TERMINATED;
                     running_process->completion_time = tick + 1;
@@ -279,9 +247,7 @@ void run_priority_np(Process processes[], int num_processes) {
 // 5. Preemptive Priority 스케줄러
 void run_priority_p(Process processes[], int num_processes) {
     Queue ready_queue;
-    Queue waiting_queue;
     init_queue(&ready_queue);
-    init_queue(&waiting_queue);
     
     int tick = 0;
     int completed_processes = 0;
@@ -297,22 +263,17 @@ void run_priority_p(Process processes[], int num_processes) {
             }
         }
         
-        int wait_count = 0;
-        Process* temp_wait_arr[MAX_PROCESSES];
-        while (!is_queue_empty(&waiting_queue)) {
-            Process* p = dequeue(&waiting_queue);
-            p->remaining_io_time--;
-            if (p->remaining_io_time <= 0) {
-                p->state = READY;
-                p->current_burst_idx++;
-                p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
-                sorted_enqueue_priority(&ready_queue, p);
-            } else {
-                temp_wait_arr[wait_count++] = p;
+        for (int i = 0; i < num_processes; i++) {
+            Process* p = &processes[i];
+            if (p->state == WAITING) {
+                p->remaining_io_time--;
+                if (p->remaining_io_time <= 0) {
+                    p->state = READY;
+                    p->current_burst_idx++;
+                    p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
+                    sorted_enqueue_priority(&ready_queue, p);
+                }
             }
-        }
-        for (int i = 0; i < wait_count; i++) {
-            enqueue(&waiting_queue, temp_wait_arr[i]);
         }
         
         // 선점 여부 검사 (매 tick마다 우선순위 비교)
@@ -338,7 +299,6 @@ void run_priority_p(Process processes[], int num_processes) {
                 if (running_process->current_burst_idx < running_process->num_cpu_bursts - 1) {
                     running_process->state = WAITING;
                     running_process->remaining_io_time = running_process->io_bursts[running_process->current_burst_idx];
-                    enqueue(&waiting_queue, running_process);
                 } else {
                     running_process->state = TERMINATED;
                     running_process->completion_time = tick + 1;
@@ -354,9 +314,7 @@ void run_priority_p(Process processes[], int num_processes) {
 // 6. Round Robin (RR, Quantum = 4) 스케줄러
 void run_rr(Process processes[], int num_processes) {
     Queue ready_queue;
-    Queue waiting_queue;
     init_queue(&ready_queue);
-    init_queue(&waiting_queue);
     
     int tick = 0;
     int completed_processes = 0;
@@ -372,22 +330,17 @@ void run_rr(Process processes[], int num_processes) {
             }
         }
         
-        int wait_count = 0;
-        Process* temp_wait_arr[MAX_PROCESSES];
-        while (!is_queue_empty(&waiting_queue)) {
-            Process* p = dequeue(&waiting_queue);
-            p->remaining_io_time--;
-            if (p->remaining_io_time <= 0) {
-                p->state = READY;
-                p->current_burst_idx++;
-                p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
-                enqueue(&ready_queue, p);
-            } else {
-                temp_wait_arr[wait_count++] = p;
+        for (int i = 0; i < num_processes; i++) {
+            Process* p = &processes[i];
+            if (p->state == WAITING) {
+                p->remaining_io_time--;
+                if (p->remaining_io_time <= 0) {
+                    p->state = READY;
+                    p->current_burst_idx++;
+                    p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
+                    enqueue(&ready_queue, p);
+                }
             }
-        }
-        for (int i = 0; i < wait_count; i++) {
-            enqueue(&waiting_queue, temp_wait_arr[i]);
         }
         
         // Time Quantum 만료 시 선점
@@ -415,7 +368,6 @@ void run_rr(Process processes[], int num_processes) {
                 if (running_process->current_burst_idx < running_process->num_cpu_bursts - 1) {
                     running_process->state = WAITING;
                     running_process->remaining_io_time = running_process->io_bursts[running_process->current_burst_idx];
-                    enqueue(&waiting_queue, running_process);
                 } else {
                     running_process->state = TERMINATED;
                     running_process->completion_time = tick + 1;
@@ -431,9 +383,7 @@ void run_rr(Process processes[], int num_processes) {
 // 7. Priority 스케줄러 + Aging 적용
 void run_priority_aging(Process processes[], int num_processes) {
     Queue ready_queue;
-    Queue waiting_queue;
     init_queue(&ready_queue);
-    init_queue(&waiting_queue);
     
     int tick = 0;
     int completed_processes = 0;
@@ -449,22 +399,17 @@ void run_priority_aging(Process processes[], int num_processes) {
             }
         }
         
-        int wait_count = 0;
-        Process* temp_wait_arr[MAX_PROCESSES];
-        while (!is_queue_empty(&waiting_queue)) {
-            Process* p = dequeue(&waiting_queue);
-            p->remaining_io_time--;
-            if (p->remaining_io_time <= 0) {
-                p->state = READY;
-                p->current_burst_idx++;
-                p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
-                sorted_enqueue_priority(&ready_queue, p);
-            } else {
-                temp_wait_arr[wait_count++] = p;
+        for (int i = 0; i < num_processes; i++) {
+            Process* p = &processes[i];
+            if (p->state == WAITING) {
+                p->remaining_io_time--;
+                if (p->remaining_io_time <= 0) {
+                    p->state = READY;
+                    p->current_burst_idx++;
+                    p->remaining_burst_time = p->cpu_bursts[p->current_burst_idx];
+                    sorted_enqueue_priority(&ready_queue, p);
+                }
             }
-        }
-        for (int i = 0; i < wait_count; i++) {
-            enqueue(&waiting_queue, temp_wait_arr[i]);
         }
         
         // Aging 처리: Ready 큐에서 5틱 대기할 때마다 dynamic priority 증가 (숫자 감소)
@@ -515,7 +460,6 @@ void run_priority_aging(Process processes[], int num_processes) {
                 if (running_process->current_burst_idx < running_process->num_cpu_bursts - 1) {
                     running_process->state = WAITING;
                     running_process->remaining_io_time = running_process->io_bursts[running_process->current_burst_idx];
-                    enqueue(&waiting_queue, running_process);
                 } else {
                     running_process->state = TERMINATED;
                     running_process->completion_time = tick + 1;

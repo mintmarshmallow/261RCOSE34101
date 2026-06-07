@@ -1,5 +1,6 @@
 #include "evaluation.h"
 #include <stdio.h>
+#include <string.h>
 
 GanttEvent gantt_chart[MAX_GANTT_EVENTS];
 int num_gantt_events = 0;
@@ -28,11 +29,15 @@ void print_gantt_chart() {
     printf("=====================\n\n");
 }
 
-void evaluate_and_print_results(Process processes[], int num_processes, const char* scheduler_name) {
+SimulationResult evaluate_and_print_results(Process processes[], int num_processes, const char* scheduler_name) {
     int total_waiting = 0;
     int total_turnaround = 0;
+    SimulationResult result;
+
     
     printf("\n>> Simulation Results for %s <<\n", scheduler_name);
+    strncpy(result.name, scheduler_name, 49);
+    result.name[49] = '\0';
     printf("PID\tArrival\tPriority\tBurst\tCompletion\tTurnaround\tWaiting\n");
     
     for (int i = 0; i < num_processes; i++) {
@@ -61,8 +66,12 @@ void evaluate_and_print_results(Process processes[], int num_processes, const ch
                p->completion_time, p->total_turnaround_time, p->total_waiting_time);
     }
     
-    printf("\nAverage Waiting Time: %.2f\n", (float)total_waiting / num_processes);
-    printf("Average Turnaround Time: %.2f\n", (float)total_turnaround / num_processes);
-    
+    result.avg_waiting_time = (float)total_waiting / num_processes;
+    result.avg_turnaround_time = (float)total_turnaround / num_processes;
+
+    printf("\nAverage Waiting Time: %.2f\n", result.avg_waiting_time);
+    printf("Average Turnaround Time: %.2f\n", result.avg_turnaround_time);
+
     print_gantt_chart();
+    return result;
 }
