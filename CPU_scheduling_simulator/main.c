@@ -19,7 +19,7 @@ void print_simulation_ranking(SimulationResult results[]) {
     }
     
     if (valid_count == 0) {
-        printf("아직 시뮬레이션 결과가 없습니다. 시뮬레이션을 먼저 진행하세요.\n\n");
+        printf("No simulation results yet. Please run a simulation first.\n\n");
         return;
     }
     
@@ -89,14 +89,14 @@ int main() {
         
         if(toggle){
             printf("========================================================================\n");
-            printf("                           [현재 시뮬레이션 랭킹]                             \n");
+            printf("                      [Current Simulation Rankings]                     \n");
             printf("========================================================================\n\n");
 
             print_simulation_ranking(results);
             
-            printf("0. 종료\n");
-            printf("1. 프로세스 다시 생성\n");
-            printf("2. 모든 시뮬레이션 실행\n");
+            printf("0. Exit\n");
+            printf("1. Generate New Processes\n");
+            printf("2. Run All Simulations\n");
             printf("3. FCFS \n");
             printf("4. SJF (Non-Preemptive) \n");
             printf("5. SJF (Preemptive) \n");
@@ -104,11 +104,11 @@ int main() {
             printf("7. Priority (Preemptive) \n");
             printf("8. RR (Quantum = 4)\n");
             printf("9. Priority with Aging \n");
-            printf("선택: ");
+            printf("Select: ");
         } else {
-            printf("0. 종료\n");
-            printf("1. 랜덤 프로세스 생성\n");
-            printf("선택: ");
+            printf("0. Exit\n");
+            printf("1. Generate Random Processes\n");
+            printf("Select: ");
             
         }
         
@@ -210,7 +210,7 @@ int main() {
             run_priority_aging(simulation_processes, MAX_PROCESSES);
             results[6] = evaluate_and_print_results(simulation_processes, MAX_PROCESSES, "Priority with Aging");
         } else if(choice == 0){
-            printf("시뮬레이터가 종료되었습니다.");
+            printf("Simulator terminated.\n");
             return 0;
         }
         
