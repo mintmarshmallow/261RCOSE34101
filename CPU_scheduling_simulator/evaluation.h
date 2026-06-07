@@ -3,8 +3,6 @@
 
 #include "process.h"
 
-// 시뮬레이션 결과 평가 및 출력 (Waiting time, Turnaround time 계산)
-void evaluate_and_print_results(Process processes[], int num_processes, const char* scheduler_name);
 
 // 간트 차트 이벤트 관리를 위한 구조체
 #define MAX_GANTT_EVENTS 1000
@@ -15,8 +13,17 @@ typedef struct {
     int pid;
 } GanttEvent;
 
+typedef struct {
+    char name[50];
+    float avg_waiting_time;
+    float avg_turnaround_time;
+} SimulationResult;
 extern GanttEvent gantt_chart[MAX_GANTT_EVENTS];
 extern int num_gantt_events;
+
+// 시뮬레이션 결과 평가 및 출력 (Waiting time, Turnaround time 계산)
+SimulationResult evaluate_and_print_results(Process processes[], int num_processes, const char* scheduler_name);
+
 
 // 간트 차트에 기록 추가
 void add_gantt_event(int start_time, int end_time, int pid);
